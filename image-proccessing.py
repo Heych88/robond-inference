@@ -18,13 +18,13 @@ football_pitch_filenames.sort()
 tennis_court_filenames.sort()
 
 
+# Translates image data to create shifted training data
+# img : image data
+# label : label data for the image
+# distance : max distance of transformed images
+# step : steps between transformed images
+# return : list of new images and corresponding label data
 def translate_image(img, label, distance=0, step=20):
-    # Translation of image data to create more training data
-    # img : image data
-    # label : label data for the image
-    # distance : max distance of transformed images
-    # step : steps between transformed images
-    # return : list of new images and corresponding label data
 
     rows, cols = img.shape[:2]
     img_list = []
@@ -92,7 +92,12 @@ def zoom_image(img, label, ratio=2, steps=2):
 
     return img_list, label_list
 
+
 ## Original function sourced from https://www.pyimagesearch.com/2015/10/05/opencv-gamma-correction/
+# adjusts the gamma brightness of an image
+# image : original image to be adjusted
+# gamma : value to ajust the image gamma by
+# return : gamma corrected image
 def adjust_gamma(image, gamma=1.0):
     # build a lookup table mapping the pixel values [0, 255] to
     # their adjusted gamma values
@@ -104,6 +109,10 @@ def adjust_gamma(image, gamma=1.0):
     return cv2.LUT(image, table)
 
 
+# calls image manipulation function to create multiple images of the one supplied image
+# img : image data
+# label : label data for the image
+# return : list of new images and corresponding label data
 def more_images(img, label_name):
     shif_dist = 0
     zoom_ratio = 1.5
@@ -119,6 +128,12 @@ def more_images(img, label_name):
     image_data.extend(img_list)
     label.extend(label_list)
 
+
+# loads all the images in the file directory and creates variations of the image
+# for extra image training data for neural networks.
+# img : image data
+# label : label data for the image
+# return : list of new images and corresponding label data
 def make_data(filenames, label_name, img_size=256):
 
     for name in filenames:
@@ -163,5 +178,4 @@ if __name__ == "__main__":
     make_data(tennis_court_filenames, "nothing")
 
     print(len(image_data))
-
 

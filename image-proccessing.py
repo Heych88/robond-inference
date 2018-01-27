@@ -11,7 +11,7 @@ def translate_image(img, label, distance=0, step=20):
     # step : steps between transformed images
     # return : list of new images and corresponding label data
 
-    rows, cols, _ = img.shape
+    rows, cols = img.shape[:2]
     img_list = []
     label_list = []
 
@@ -38,6 +38,31 @@ def translate_image(img, label, distance=0, step=20):
     return img_list, label_list
 
 
+def zoom_image(img, label, ratio=2, step=2):
+
+
+    rows, cols = img.shape[:2]
+    img_list = []
+    label_list = []
+
+    # zoom into the image by finding the middle image size that is the ratio of the image
+    # width, divide the excess of this value by two to find the start and end position
+    # for the image regions.
+    row_offset = (rows * (1 - (1 / ratio))) // 2
+    col_offset = (cols * (1 - (1 / ratio))) // 2
+
+    # make the image larger
+    larger_img = img[row_offset:img_size - row_offset, col_offset:img_size - col_offset]
+    print(larger_img.shape)
+    larger_img = cv2.resize(larger_img, (rows, cols), interpolation=cv2.INTER_CUBIC)
+
+    cv2.imshow("norm", img)
+    cv2.imshow("larger_img", larger_img)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
 football_filenames = [img for img in glob.glob("images/football/*.jpg")]
 tennis_ball_filenames = [img for img in glob.glob("images/tennisball/*.jpg")]
 football_pitch_filenames = [img for img in glob.glob("images/footballpitch/*.jpg")]
@@ -53,13 +78,14 @@ image_data = []  # store the image data
 
 
 shif_dist = 0
+img_size = 256
 
 for name in football_filenames:
     img = cv2.imread(name)
     name = "football"
 
     # resize to the GoogLenet input size of 256x256x3
-    res = cv2.resize(img, (256, 256), interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(img, (img_size, img_size), interpolation=cv2.INTER_CUBIC)
 
     # translate base image
     img_list, label_list = translate_image(img, name, step=shif_dist//2,
@@ -85,13 +111,8 @@ for name in football_filenames:
     image_data.extend(img_list)
     label.extend(label_list)
 
-    '''cv2.imshow("norm", img)
-    cv2.imshow("hor", cv2.flip(img, 1))
-    cv2.imshow("vert", cv2.flip(img, 0))
-    cv2.imshow("180", cv2.flip(img, -1))
+    zoom_image(img, name, ratio=1.5, step=2)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()'''
 
 
 print(len(image_data))

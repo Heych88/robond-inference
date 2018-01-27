@@ -38,11 +38,11 @@ def translate_image(img, label, distance=0, step=20):
     return img_list, label_list
 
 
-# Zooms an image in or out
+# Zooms an image in
 # img : image data
 # label : label data for the image
 # ratio : ratio to zoom image. ratio > 1 will zoom in & ratio < 1 zoom out
-# step : steps between transformed images
+# step : steps between zoom ratio images
 # return : list of new images and corresponding label data
 def zoom_image(img, label, ratio=2, steps=2):
 
@@ -50,18 +50,20 @@ def zoom_image(img, label, ratio=2, steps=2):
     img_list = []
     label_list = []
 
+    # prevent negative and zero values from the input
+    ratio = max(ratio, 1)
+    steps = max(steps, 1)
+
     # zoom into the image by finding the middle image size that is the ratio of the image
     # width, divide the excess of this value by two to find the start and end position
     # for the image regions.
     row_max = int((rows * (1 - (1 / ratio))) // 2)
     col_max = int((cols * (1 - (1 / ratio))) // 2)
 
-    row_step = int(row_max // max(steps, 1)) # prevent divide by zero
-    col_step = int(col_max // max(steps, 1))
+    row_step = int(row_max // steps) # prevent divide by zero
+    col_step = int(col_max // steps)
 
     col_offset = 0
-
-    #print("row_max ", row_max, "   row_step ", row_step)
 
     # add step to include the distance in the image transform
     for row_offset in range(row_step, row_max+1, row_step):
@@ -69,14 +71,11 @@ def zoom_image(img, label, ratio=2, steps=2):
 
         # make the image larger
         larger_img = img[row_offset:img_size - row_offset, col_offset:img_size - col_offset]
-        print(larger_img.shape)
-        larger_img = cv2.resize(larger_img, (rows, cols), interpolation=cv2.INTER_CUBIC)
+        img_list.append(cv2.resize(larger_img, (rows, cols), interpolation=cv2.INTER_CUBIC))
 
-        cv2.imshow("norm", img)
-        cv2.imshow("larger_img", larger_img)
+        label_list.append(label)
 
-        cv2.waitKey(0)
-
+    return img_list, label_list
 
 
 football_filenames = [img for img in glob.glob("images/football/*.jpg")]
@@ -94,6 +93,7 @@ image_data = []  # store the image data
 
 
 shif_dist = 0
+zoom_ratio = 1.5
 img_size = 256
 
 for name in football_filenames:
@@ -109,26 +109,48 @@ for name in football_filenames:
     image_data.extend(img_list)
     label.extend(label_list)
 
-    # translate horizontally flipped image
-    img_list, label_list = translate_image(cv2.flip(img, 1), name, step=shif_dist // 2,
-                                           distance=shif_dist)
+    img_list, label_list = zoom_image(img, name, ratio=zoom_ratio, steps=2)
     image_data.extend(img_list)
     label.extend(label_list)
+
+
+    # translate horizontally flipped image
+    flip_img = cv2.flip(img, 1)
+    img_list, label_list = translate_image(flip_img, name, step=shif_dist // 2,
+                                           distance=shif_dist)
+    # scale the flipped image
+    zoom_img_list, zoom_label_list = zoom_image(flip_img, name, ratio=zoom_ratio, steps=2)
+
+    image_data.extend(img_list)
+    label.extend(label_list)
+    image_data.extend(zoom_img_list)
+    label.extend(zoom_label_list)
+
 
     # translate vertically flipped image
-    img_list, label_list = translate_image(cv2.flip(img, 0), name, step=shif_dist // 2,
+    flip_img = cv2.flip(img, 0)
+    img_list, label_list = translate_image(flip_img, name, step=shif_dist // 2,
                                            distance=shif_dist)
+    # scale the flipped image
+    zoom_img_list, zoom_label_list = zoom_image(flip_img, name, ratio=zoom_ratio, steps=2)
+
     image_data.extend(img_list)
     label.extend(label_list)
+    image_data.extend(zoom_img_list)
+    label.extend(zoom_label_list)
+
 
     # translate vertically and horizontally flipped image
-    img_list, label_list = translate_image(cv2.flip(img, -1), name, step=shif_dist // 2,
+    flip_img = cv2.flip(img, -1)
+    img_list, label_list = translate_image(flip_img, name, step=shif_dist // 2,
                                            distance=shif_dist)
+    # scale the flipped image
+    zoom_img_list, zoom_label_list = zoom_image(flip_img, name, ratio=zoom_ratio, steps=2)
+
     image_data.extend(img_list)
     label.extend(label_list)
-
-    zoom_image(img, name, ratio=1.5, steps=2)
-
+    image_data.extend(zoom_img_list)
+    label.extend(zoom_label_list)
 
 
 print(len(image_data))

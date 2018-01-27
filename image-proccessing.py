@@ -5,8 +5,8 @@ import numpy as np
 
 def translate_image(img, label, distance=0, step=20):
     # Translation of image data to create more training data
-    # img : 3D image data
-    # label : float label data for the image
+    # img : image data
+    # label : label data for the image
     # distance : max distance of transformed images
     # step : steps between transformed images
     # return : list of new images and corresponding label data
@@ -38,8 +38,13 @@ def translate_image(img, label, distance=0, step=20):
     return img_list, label_list
 
 
-def zoom_image(img, label, ratio=2, step=2):
-
+# Zooms an image in or out
+# img : image data
+# label : label data for the image
+# ratio : ratio to zoom image. ratio > 1 will zoom in & ratio < 1 zoom out
+# step : steps between transformed images
+# return : list of new images and corresponding label data
+def zoom_image(img, label, ratio=2, steps=2):
 
     rows, cols = img.shape[:2]
     img_list = []
@@ -48,19 +53,30 @@ def zoom_image(img, label, ratio=2, step=2):
     # zoom into the image by finding the middle image size that is the ratio of the image
     # width, divide the excess of this value by two to find the start and end position
     # for the image regions.
-    row_offset = (rows * (1 - (1 / ratio))) // 2
-    col_offset = (cols * (1 - (1 / ratio))) // 2
+    row_max = int((rows * (1 - (1 / ratio))) // 2)
+    col_max = int((cols * (1 - (1 / ratio))) // 2)
 
-    # make the image larger
-    larger_img = img[row_offset:img_size - row_offset, col_offset:img_size - col_offset]
-    print(larger_img.shape)
-    larger_img = cv2.resize(larger_img, (rows, cols), interpolation=cv2.INTER_CUBIC)
+    row_step = int(row_max // max(steps, 1)) # prevent divide by zero
+    col_step = int(col_max // max(steps, 1))
 
-    cv2.imshow("norm", img)
-    cv2.imshow("larger_img", larger_img)
+    col_offset = 0
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    #print("row_max ", row_max, "   row_step ", row_step)
+
+    # add step to include the distance in the image transform
+    for row_offset in range(row_step, row_max+1, row_step):
+        col_offset += col_step
+
+        # make the image larger
+        larger_img = img[row_offset:img_size - row_offset, col_offset:img_size - col_offset]
+        print(larger_img.shape)
+        larger_img = cv2.resize(larger_img, (rows, cols), interpolation=cv2.INTER_CUBIC)
+
+        cv2.imshow("norm", img)
+        cv2.imshow("larger_img", larger_img)
+
+        cv2.waitKey(0)
+
 
 
 football_filenames = [img for img in glob.glob("images/football/*.jpg")]
@@ -111,7 +127,7 @@ for name in football_filenames:
     image_data.extend(img_list)
     label.extend(label_list)
 
-    zoom_image(img, name, ratio=1.5, step=2)
+    zoom_image(img, name, ratio=1.5, steps=2)
 
 
 

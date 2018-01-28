@@ -17,6 +17,22 @@ tennis_ball_filenames.sort()
 football_pitch_filenames.sort()
 tennis_court_filenames.sort()
 
+# Initialize photo count
+global number
+number = 0
+
+
+
+def save_image(img, set_dir, name_type):
+    global number
+
+    filename = 'Data/' + set_dir + '/' + name_type + "_" + str(number) + ".png"
+    cv2.imwrite(filename, img)
+
+
+
+    number += 1
+
 
 # Translates image data to create shifted training data
 # img : image data
@@ -24,15 +40,12 @@ tennis_court_filenames.sort()
 # distance : max distance of transformed images
 # step : steps between transformed images
 # return : list of new images and corresponding label data
-def translate_image(img, label, distance=0, step=20):
+def translate_image(img, set_dir, name_type, distance=0, step=20):
 
     rows, cols = img.shape[:2]
-    img_list = []
-    label_list = []
 
     # add original un touched image
-    img_list.append(img)
-    label_list.append(label)
+    save_image(img, set_dir, name_type)
 
     if(step <= 0):
         step = 1
@@ -43,14 +56,9 @@ def translate_image(img, label, distance=0, step=20):
         M_left = np.float32([[1, 0, -offset], [0, 1, 0]]) # move image left
 
         # shift the image to the right and append the process image to the list
-        img_list.append(cv2.warpAffine(img, M_right, (cols, rows)))
+        save_image(cv2.warpAffine(img, M_right, (cols, rows)), set_dir, name_type)
         # shift the image to the left and append the process image to the list
-        img_list.append(cv2.warpAffine(img, M_left, (cols, rows)))
-
-        label_list.append(label)  # for image shifted to the right
-        label_list.append(label)  # left
-
-    return img_list, label_list
+        save_image(cv2.warpAffine(img, M_left, (cols, rows)), set_dir, name_type)
 
 
 # Zooms an image in
@@ -59,11 +67,9 @@ def translate_image(img, label, distance=0, step=20):
 # ratio : ratio to zoom image. ratio > 1 will zoom in & ratio < 1 zoom out
 # step : steps between zoom ratio images
 # return : list of new images and corresponding label data
-def zoom_image(img, label, ratio=2, steps=2):
+def zoom_image(img, set_dir, name_type, ratio=2, steps=2):
 
     rows, cols = img.shape[:2]
-    img_list = []
-    label_list = []
 
     # prevent negative and zero values from the input
     ratio = max(ratio, 1)
@@ -86,11 +92,7 @@ def zoom_image(img, label, ratio=2, steps=2):
 
         # make the image larger
         larger_img = img[row_offset:rows - row_offset, col_offset:cols - col_offset]
-        img_list.append(cv2.resize(larger_img, (rows, cols), interpolation=cv2.INTER_CUBIC))
-
-        label_list.append(label)
-
-    return img_list, label_list
+        save_image(cv2.resize(larger_img, (rows, cols), interpolation=cv2.INTER_CUBIC), set_dir, name_type)
 
 
 ## Original function sourced from https://www.pyimagesearch.com/2015/10/05/opencv-gamma-correction/
@@ -113,20 +115,15 @@ def adjust_gamma(image, gamma=1.0):
 # img : image data
 # label : label data for the image
 # return : list of new images and corresponding label data
-def more_images(img, label_name):
+def more_images(img, set_dir, name_type):
     shif_dist = 0
     zoom_ratio = 1.5
 
     # translate base image
-    img_list, label_list = translate_image(img, label_name, step=shif_dist // 2,
-                                           distance=shif_dist)
-    image_data.extend(img_list)
-    label.extend(label_list)
+    translate_image(img, set_dir, name_type, step=shif_dist // 2, distance=shif_dist)
 
     # scale the flipped image
-    img_list, label_list = zoom_image(img, label_name, ratio=zoom_ratio, steps=2)
-    image_data.extend(img_list)
-    label.extend(label_list)
+    zoom_image(img, set_dir, name_type, ratio=zoom_ratio, steps=2)
 
 
 # loads all the images in the file directory and creates variations of the image
@@ -134,7 +131,7 @@ def more_images(img, label_name):
 # img : image data
 # label : label data for the image
 # return : list of new images and corresponding label data
-def make_data(filenames, label_name, img_size=256):
+def make_data(filenames, set_dir, name_type, img_size=256):
 
     for name in filenames:
         image = cv2.imread(name)
@@ -156,26 +153,46 @@ def make_data(filenames, label_name, img_size=256):
             img = cv2.resize(img, (img_size, img_size), interpolation=cv2.INTER_CUBIC)
 
             # translate base image
-            more_images(img, label_name)
+            more_images(img, set_dir, name_type)
 
             # translate horizontally flipped image
             flip_img = cv2.flip(img, 1)
-            more_images(flip_img, label_name)
+            more_images(flip_img, set_dir, name_type)
 
             # translate vertically flipped image
             flip_img = cv2.flip(img, 0)
-            more_images(flip_img, label_name)
+            more_images(flip_img, set_dir, name_type)
 
             # translate vertically and horizontally flipped image
             flip_img = cv2.flip(img, -1)
-            more_images(flip_img, label_name)
+            more_images(flip_img, set_dir, name_type)
 
 
 if __name__ == "__main__":
-    make_data(football_filenames, "football")
-    make_data(tennis_ball_filenames, "tennis_ball")
-    make_data(football_pitch_filenames, "nothing")
-    make_data(tennis_court_filenames, "nothing")
+    global number
+    # Give image a name type
+    name_type = 'ball'
 
-    print(len(image_data))
+    # Specify the name of the directory that has been premade and be sure that it's the name of your class
+    # Remember this directory name serves as your data label for that particular class
+    set_dir = 'Football'
+
+    number = 0  # current image number to be saved
+
+    print("Making data for diresctory {}".format(set_dir))
+    make_data(football_filenames, set_dir, name_type)
+
+    set_dir = 'Tennisball'
+    number = 0
+    print("Making data for diresctory {}".format(set_dir))
+    make_data(tennis_ball_filenames, set_dir, name_type)
+
+    set_dir = 'None'
+    name_type = 'Nothing'
+    number = 0
+    print("Making data for diresctory {}".format(set_dir))
+    make_data(football_pitch_filenames, set_dir, name_type)
+    make_data(tennis_court_filenames, set_dir, name_type)
+
+    print("Finished making data")
 

@@ -25,6 +25,15 @@ global number
 number = 0
 
 
+def save_address_file(file_name, list):
+
+    file = open(file_name, 'w')
+
+    for item, name in enumerate(list):
+        file.write(name + '\n')
+
+    file.close()
+
 
 def save_image(img, set_dir, name_type, label_type):
     global number
@@ -212,9 +221,7 @@ if __name__ == "__main__":
 
     print("Train data {}, Validation data {}".format(len(train_data), len(val_data)))
 
-    #cv2.imshow("image ", train_data[1000])
-    print(train_data[1000])
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
+    print("saving data file")
+    save_address_file('train_file.txt', train_data)
+    save_address_file('validation_file.txt', val_data)
+    print("Finished")

@@ -197,13 +197,13 @@ if __name__ == "__main__":
     print("Making data for directory {}".format(set_dir))
     make_data(football_filenames, set_dir, name_type, label_keys['Football'])
 
-    set_dir = 'Tennisball'
-    name_type = 'Tennisball'
+    set_dir = 'Tennis_ball'
+    name_type = 'Tennis_ball'
     number = 0
     print("Making data for directory {}".format(set_dir))
     make_data(tennis_ball_filenames, set_dir, name_type, label_keys['Tennisball'])
 
-    set_dir = 'None'
+    set_dir = 'Nothing'
     name_type = 'Nothing'
     number = 0
     print("Making data for directory {}".format(set_dir))

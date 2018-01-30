@@ -5,11 +5,24 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 import os, errno
 from termcolor import colored
+import tarfile
 
 # Initialize photo count
 global number
 number = 0
 
+
+def make_tarfile(output_filename, source_dir):
+    print("compressing {}".format(source_dir))
+
+    # check if the directory path exists otherwise create it
+    if not os.path.exists('Data/'):
+        print(colored("Oops!  Directory {} doesn't exist".format(source_dir)), 'yellow')
+    else:
+        with tarfile.open(output_filename, "w:gz") as tar:
+            tar.add(source_dir, arcname=os.path.basename(source_dir))
+
+        print("Finished compressing {} to {}".format(source_dir, output_filename))
 
 def save_address_file(file_name, list):
 
@@ -296,6 +309,8 @@ if __name__ == "__main__":
     get_nothing_data(label_keys)
 
     print("Finished making data")
+
+    make_tarfile('Ball_data.tar.gz', 'Data/')
 
     #print("Total data {}".format(len(image_data)))
 

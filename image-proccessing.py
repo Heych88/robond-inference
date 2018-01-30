@@ -6,20 +6,6 @@ from sklearn.model_selection import train_test_split
 import os, errno
 from termcolor import colored
 
-
-#label_data = []  # stores the label of each image
-#image_data = []  # store the image data
-#label_data.extend(0)
-
-
-
-
-
-#football_filenames.sort()
-#tennis_ball_filenames.sort()
-#football_pitch_filenames.sort()
-#tennis_court_filenames.sort()
-
 # Initialize photo count
 global number
 number = 0
@@ -207,29 +193,14 @@ def load_filenames(directory):
         return [img for img in glob.glob(directory + "*.jpg")]
 
 
-
-
-
-if __name__ == "__main__":
-    global number
-
-    # numerical label value
-    label_keys = {'Football':0,
-                  'Tennis_ball':1,
-                  'Basketball': 2,
-                  'American_football': 3,
-                  'Rugby_ball': 4,
-                  'Volleyball': 5,
-                  'Nothing':6}
-
-    number = 0  # current image number to be saved
-
+def get_target_data(label_keys):
     ######################### Make target data ################################
     # Give image a name type
     name_type = 'Football'
     # Specify the name of the directory that has been premade and be sure that it's the name of your class
     # Remember this directory name serves as your data label for that particular class
     set_dir = 'Football'
+    number = 0  # current image number to be saved
     print("Making data for directory {}".format(set_dir))
     football_filenames = load_filenames("images/football/")
     if football_filenames is not None:
@@ -246,6 +217,7 @@ if __name__ == "__main__":
     set_dir = 'Basketball'
     name_type = 'Basketball'
     number = 0
+    print("Making data for directory {}".format(set_dir))
     basketball_filenames = load_filenames("images/basketball/")
     if basketball_filenames is not None:
         make_data(basketball_filenames, set_dir, name_type, label_keys['Basketball'])
@@ -253,6 +225,7 @@ if __name__ == "__main__":
     set_dir = 'American_football'
     name_type = 'American_football'
     number = 0
+    print("Making data for directory {}".format(set_dir))
     american_football_filenames = load_filenames("images/american_football/")
     if american_football_filenames is not None:
         make_data(american_football_filenames, set_dir, name_type, label_keys['American_football'])
@@ -260,6 +233,7 @@ if __name__ == "__main__":
     set_dir = 'Rugby_ball'
     name_type = 'Rugby_ball'
     number = 0
+    print("Making data for directory {}".format(set_dir))
     rugby_ball_filenames = load_filenames("images/rugby_ball/")
     if rugby_ball_filenames is not None:
         make_data(rugby_ball_filenames, set_dir, name_type, label_keys['Rugby_ball'])
@@ -267,11 +241,13 @@ if __name__ == "__main__":
     set_dir = 'Volleyball'
     name_type = 'Volleyball'
     number = 0
+    print("Making data for directory {}".format(set_dir))
     volleyball_filenames = load_filenames("images/volleyball/")
     if volleyball_filenames is not None:
         make_data(volleyball_filenames, set_dir, name_type, label_keys['Volleyball'])
 
 
+def get_nothing_data(label_keys):
     ##################### Make background noise data ##########################
     set_dir = 'Nothing'
     name_type = 'Nothing'
@@ -302,7 +278,25 @@ if __name__ == "__main__":
     if rugby_field_filenames is not None:
         make_data(rugby_field_filenames, set_dir, name_type, label_keys['Nothing'])
 
+
+if __name__ == "__main__":
+    global number
+
+    # numerical label value
+    label_keys = {'Football': 0,
+                  'Tennis_ball': 1,
+                  'Basketball': 2,
+                  'American_football': 3,
+                  'Rugby_ball': 4,
+                  'Volleyball': 5,
+                  'Nothing': 6}
+
+    get_target_data(label_keys)
+
+    get_nothing_data(label_keys)
+
     print("Finished making data")
+
     #print("Total data {}".format(len(image_data)))
 
 

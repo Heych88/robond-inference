@@ -3,22 +3,22 @@ import glob
 import numpy as np
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+import os, errno
+from termcolor import colored
 
 
 #label_data = []  # stores the label of each image
-image_data = []  # store the image data
+#image_data = []  # store the image data
 #label_data.extend(0)
 
 
-football_filenames = [img for img in glob.glob("images/football/*.jpg")]
-tennis_ball_filenames = [img for img in glob.glob("images/tennisball/*.jpg")]
-football_pitch_filenames = [img for img in glob.glob("images/footballpitch/*.jpg")]
-tennis_court_filenames = [img for img in glob.glob("images/tenniscourt/*.jpg")]
 
-football_filenames.sort()
-tennis_ball_filenames.sort()
-football_pitch_filenames.sort()
-tennis_court_filenames.sort()
+
+
+#football_filenames.sort()
+#tennis_ball_filenames.sort()
+#football_pitch_filenames.sort()
+#tennis_court_filenames.sort()
 
 # Initialize photo count
 global number
@@ -38,10 +38,28 @@ def save_address_file(file_name, list):
 def save_image(img, set_dir, name_type, label_type):
     global number
 
+    # check if the directory path exists otherwise create it
+    if not os.path.exists('Data/'):
+        try:
+            os.makedirs('Data/')
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                print("Oops!  Can not make the 'Data/' directory. Given error {}".format(e.errno))
+                print(e.args)
+                raise
+    elif not os.path.exists('Data/' + set_dir):
+        try:
+            os.makedirs('Data/' + set_dir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                print("Oops!  Can not make the 'Data/{}' directory. Given error {}".format(set_dir, e.errno))
+                print(e.args)
+                raise
+
     filename = 'Data/' + set_dir + '/' + name_type + "_" + str(number) + ".png"
     cv2.imwrite(filename, img)
 
-    image_data.append(filename + "<" + str(label_type) + ">")
+    #image_data.append(filename + "<" + str(label_type) + ">")
 
     number += 1
 
@@ -172,50 +190,124 @@ def make_data(filenames, set_dir, name_type, label_type, img_size=256):
             more_images(flip_img, set_dir, name_type, label_type)
 
             # translate vertically flipped image
-            flip_img = cv2.flip(img, 0)
+            #flip_img = cv2.flip(img, 0)
             #more_images(flip_img, set_dir, name_type, label_type)
 
             # translate vertically and horizontally flipped image
-            flip_img = cv2.flip(img, -1)
+            #flip_img = cv2.flip(img, -1)
             #more_images(flip_img, set_dir, name_type, label_type)
+
+
+
+def load_filenames(directory):
+    if not os.path.exists(directory):
+        print(colored("Directory {} Doesn't exist".format(directory), 'yellow'))
+        return None
+    else:
+        return [img for img in glob.glob(directory + "*.jpg")]
+
+
+
 
 
 if __name__ == "__main__":
     global number
-    # Give image a name type
-    name_type = 'Football'
-
-    # Specify the name of the directory that has been premade and be sure that it's the name of your class
-    # Remember this directory name serves as your data label for that particular class
-    set_dir = 'Football'
 
     # numerical label value
-    label_keys = {'Football':0, 'Tennisball':1, 'Nothing':2}
+    label_keys = {'Football':0,
+                  'Tennis_ball':1,
+                  'Basketball': 2,
+                  'American_football': 3,
+                  'Rugby_ball': 4,
+                  'Volleyball': 5,
+                  'Nothing':6}
 
     number = 0  # current image number to be saved
 
+    ######################### Make target data ################################
+    # Give image a name type
+    name_type = 'Football'
+    # Specify the name of the directory that has been premade and be sure that it's the name of your class
+    # Remember this directory name serves as your data label for that particular class
+    set_dir = 'Football'
     print("Making data for directory {}".format(set_dir))
-    make_data(football_filenames, set_dir, name_type, label_keys['Football'])
+    football_filenames = load_filenames("images/football/")
+    if football_filenames is not None:
+        make_data(football_filenames, set_dir, name_type, label_keys['Football'])
 
     set_dir = 'Tennis_ball'
     name_type = 'Tennis_ball'
     number = 0
     print("Making data for directory {}".format(set_dir))
-    make_data(tennis_ball_filenames, set_dir, name_type, label_keys['Tennisball'])
+    tennis_ball_filenames = load_filenames("images/tennisball/")
+    if tennis_ball_filenames is not None:
+        make_data(tennis_ball_filenames, set_dir, name_type, label_keys['Tennis_ball'])
 
+    set_dir = 'Basketball'
+    name_type = 'Basketball'
+    number = 0
+    basketball_filenames = load_filenames("images/basketball/")
+    if basketball_filenames is not None:
+        make_data(basketball_filenames, set_dir, name_type, label_keys['Basketball'])
+
+    set_dir = 'American_football'
+    name_type = 'American_football'
+    number = 0
+    american_football_filenames = load_filenames("images/american_football/")
+    if american_football_filenames is not None:
+        make_data(american_football_filenames, set_dir, name_type, label_keys['American_football'])
+
+    set_dir = 'Rugby_ball'
+    name_type = 'Rugby_ball'
+    number = 0
+    rugby_ball_filenames = load_filenames("images/rugby_ball/")
+    if rugby_ball_filenames is not None:
+        make_data(rugby_ball_filenames, set_dir, name_type, label_keys['Rugby_ball'])
+
+    set_dir = 'Volleyball'
+    name_type = 'Volleyball'
+    number = 0
+    volleyball_filenames = load_filenames("images/volleyball/")
+    if volleyball_filenames is not None:
+        make_data(volleyball_filenames, set_dir, name_type, label_keys['Volleyball'])
+
+
+    ##################### Make background noise data ##########################
     set_dir = 'Nothing'
     name_type = 'Nothing'
     number = 0
     print("Making data for directory {}".format(set_dir))
-    make_data(football_pitch_filenames, set_dir, name_type, label_keys['Nothing'])
-    make_data(tennis_court_filenames, set_dir, name_type, label_keys['Nothing'])
+
+    football_pitch_filenames = load_filenames("images/footballpitch/")
+    if football_pitch_filenames is not None:
+        make_data(football_pitch_filenames, set_dir, name_type, label_keys['Nothing'])
+
+    tennis_court_filenames = load_filenames("images/tenniscourt/")
+    if tennis_court_filenames is not None:
+        make_data(tennis_court_filenames, set_dir, name_type, label_keys['Nothing'])
+
+    basketball_court_filenames = load_filenames("images/basketball_court/")
+    if basketball_court_filenames is not None:
+        make_data(basketball_court_filenames, set_dir, name_type, label_keys['Nothing'])
+
+    nothing_american_football_filenames = load_filenames("images/nothing_american_football/")
+    if nothing_american_football_filenames is not None:
+        make_data(nothing_american_football_filenames, set_dir, name_type, label_keys['Nothing'])
+
+    nothing_volleyball_filenames = load_filenames("images/nothing_volleyball/")
+    if nothing_volleyball_filenames is not None:
+        make_data(nothing_volleyball_filenames, set_dir, name_type, label_keys['Nothing'])
+
+    rugby_field_filenames = load_filenames("images/rugby_field/")
+    if rugby_field_filenames is not None:
+        make_data(rugby_field_filenames, set_dir, name_type, label_keys['Nothing'])
 
     print("Finished making data")
-    print("Total data {}".format(len(image_data)))
+    #print("Total data {}".format(len(image_data)))
 
 
     #shuffle the data for train validation
-    shuf_img = shuffle(image_data)
+    '''shuf_img = shuffle(image_data)
 
     train_data, val_data = train_test_split(shuf_img, test_size=0.15)
 
@@ -224,4 +316,4 @@ if __name__ == "__main__":
     print("saving data file")
     save_address_file('train_file.txt', train_data)
     save_address_file('validation_file.txt', val_data)
-    print("Finished")
+    print("Finished")'''
